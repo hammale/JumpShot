@@ -23,7 +23,11 @@ public class Player extends BaseMoveableEntity
 	}
 
 	public void damage(int damage) {
-		health -= damage;
+		if(damage > health){
+			health = 0;
+		}else{
+			health -= damage;
+		}
 	}
 
 	public void setHealth(int health) {

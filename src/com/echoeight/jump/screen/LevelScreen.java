@@ -8,6 +8,7 @@ import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.Input.Peripheral;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.echoeight.jump.JumpShot;
 import com.echoeight.jump.entity.BaseMoveableEntity;
@@ -23,7 +24,9 @@ public class LevelScreen implements Screen {
 	public SpriteBatch batch;
 	public EntityManager em;
 	float delta;
-
+	
+	Texture bg, pausedScreen, pausedText;
+	
 	Random ran = new Random();
 
 	int genX = 0;
@@ -41,8 +44,11 @@ public class LevelScreen implements Screen {
 
 	@Override
 	public void render(float delta) {
+		if (Gdx.input.isKeyPressed(Keys.MENU)){
+			paused = true;
+		}
 		if(!paused){
-			if (Gdx.input.isKeyPressed(Keys.MENU)){
+			if (Gdx.input.isKeyPressed(Keys.BACK)){
 				reset();
 				return;
 			}
@@ -54,12 +60,15 @@ public class LevelScreen implements Screen {
 
 			camera.translate(0, speed, 0);
 
-			speed += 0.001F;
-
+			speed += 0.0005F;
+			if(speed >= 5){
+				speed = 4.9F;
+			}
 			p.setDX(0);
 
 			batch.setProjectionMatrix(camera.combined);
 			batch.begin();
+			batch.draw(bg, 0, camera.position.y-((camera.viewportHeight/2))-5);
 			for(SimplePlatform plat : em.platforms){
 				plat.draw();
 			}
@@ -96,12 +105,16 @@ public class LevelScreen implements Screen {
 			for(SimplePlatform plat : em.platforms){
 				plat.update(delta);
 			}
+		}else{
+			batch.begin();
+			batch.draw(pausedScreen, 0, camera.position.y-((camera.viewportHeight/2))-5);
+			batch.draw(pausedText, (camera.viewportWidth/2)-(145), camera.viewportHeight/2);
+			batch.end();
 		}
 	}
 
 	private void reset(){
-//		paused = true;
-//		dispose();
+		dispose();
 		game.setScreen(new MainMenu(game));
 	}
 
@@ -146,6 +159,9 @@ public class LevelScreen implements Screen {
 
 	@Override
 	public void show() {
+		bg =  new Texture(Gdx.files.internal("data/levelbg.png"));
+		pausedScreen =  new Texture(Gdx.files.internal("data/paused.png"));
+		pausedText =  new Texture(Gdx.files.internal("data/pausedtext.png"));
 		em = JumpShot.em;
 		difficulty = 75;
 		if(!Gdx.input.isPeripheralAvailable(Peripheral.Accelerometer)){
@@ -156,12 +172,8 @@ public class LevelScreen implements Screen {
 		batch = new SpriteBatch();
 		jump = false;
 		p = new Player(em, Gdx.graphics.getWidth()/2, 0, 50, 58, batch);
-		Gdx.app.postRunnable(new Runnable(){
-			@Override
-			public void run(){
-				generateLevel();
-			}
-		});
+		generateLevel();
+
 	}
 
 	@Override
@@ -173,7 +185,6 @@ public class LevelScreen implements Screen {
 	@Override
 	public void resume()
 	{
-		paused = false;
 	}
 
 	@Override

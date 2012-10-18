@@ -18,7 +18,6 @@ public class SimplePlatform extends BaseMoveableEntity
 	{
 		super(em, x, y, width, height);
 		this.color = color;
-		this.batch = batch;
 		if(color == PlatColor.BLUE){
 			texture = new Texture(Gdx.files.internal("data/plat1.png"));
 		}else if(color == PlatColor.GREEN){
@@ -32,10 +31,15 @@ public class SimplePlatform extends BaseMoveableEntity
 		id = em.assignId(this);
 		sprite = new Sprite(texture);
 		rect = sprite.getBoundingRectangle();
+		this.batch = batch;
 	}
 
 	public void damage(int damage) {
-		health -= damage;
+		if(damage > health){
+			health = 0;
+		}else{
+			health -= damage;
+		}
 	}
 
 	public void setHealth(int health) {

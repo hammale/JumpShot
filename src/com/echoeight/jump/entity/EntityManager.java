@@ -72,7 +72,12 @@ public class EntityManager
 			ent.getTexture().dispose();
 			ids.remove(ent.getId());
 		}
+		for (Entity ent : platforms) {
+			ent.getTexture().dispose();
+			ids.remove(ent.getId());
+		}
 		ids.clear();
+		platforms.clear();
 		movingEntities.clear();
 		entitiesrem.clear();
 	}
