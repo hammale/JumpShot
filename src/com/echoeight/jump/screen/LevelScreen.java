@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.echoeight.jump.JumpShot;
 import com.echoeight.jump.entity.BaseMoveableEntity;
+import com.echoeight.jump.entity.Bullet;
 import com.echoeight.jump.entity.Entity;
 import com.echoeight.jump.entity.EntityManager;
 import com.echoeight.jump.entity.Player;
@@ -24,15 +25,17 @@ public class LevelScreen implements Screen {
 	public SpriteBatch batch;
 	public EntityManager em;
 	float delta;
-	
+
 	Texture bg, pausedScreen, pausedText;
-	
+
 	Random ran = new Random();
 
 	int genX = 0;
 	int genY = 0;
 	float speed = 0.5F;
 	int difficulty;
+
+	int shotDelay = 10;
 
 	boolean jump, paused;
 	Player p;
@@ -44,10 +47,12 @@ public class LevelScreen implements Screen {
 
 	@Override
 	public void render(float delta) {
-		if (Gdx.input.isKeyPressed(Keys.MENU)){
-			paused = true;
+		if(Gdx.input.isKeyPressed(Keys.MENU)){
+			reset();
+			return;
 		}
 		if(!paused){
+			em.flush();
 			if (Gdx.input.isKeyPressed(Keys.BACK)){
 				reset();
 				return;
@@ -73,16 +78,24 @@ public class LevelScreen implements Screen {
 				plat.draw();
 			}
 			for(Entity ent : em.getMovingEntities()) {
-				ent.draw();
+				if(ent instanceof Bullet){
+					if(ent.getX() > Gdx.graphics.getWidth()){
+						em.markForDelete(ent);
+					}else if(ent.getX() < 0){
+						em.markForDelete(ent);
+					}else{
+						ent.draw();
+					}
+				}else{
+					ent.draw();
+				}
 			}
 			batch.end();
+			em.flush();
 
 			handlePlayerInput();
 			jumpPlayer();		
 			gravity(p);
-
-			if(Gdx.input.isTouched()){
-			}
 
 			if(p.getY() >= (camera.position.y)-20){
 				camera.translate(0, 5, 0);
@@ -90,21 +103,38 @@ public class LevelScreen implements Screen {
 			}
 
 			for(Entity ent : em.getMovingEntities()){
-				if(ent.getX() > Gdx.graphics.getWidth()){
-					ent.setX((float) (0.0-ent.getWidth()));
-				}else if(ent.getX() < 0-ent.getWidth()
-						&& ((BaseMoveableEntity) ent).getDX() < 0){
-					ent.setX(Gdx.graphics.getWidth());
-				}
-				ent.update(delta);
-				if(((BaseMoveableEntity) ent).getY() <= 0){
-					ent.setY(0);
-					jump = false;
+				if(ent instanceof Bullet){
+					if(ent.getX() > Gdx.graphics.getWidth()){
+						em.markForDelete(ent);
+					}else if(ent.getX() < 0){
+						em.markForDelete(ent);
+					}else{
+						ent.update(delta);
+					}
+				}else{
+					if(ent.getX() > Gdx.graphics.getWidth()){
+						ent.setX((float) (0.0-ent.getWidth()));
+					}else if(ent.getX() < 0-ent.getWidth()
+							&& ((BaseMoveableEntity) ent).getDX() < 0){
+						ent.setX(Gdx.graphics.getWidth());
+					}
+					ent.update(delta);
+					if(((BaseMoveableEntity) ent).getY() <= 0){
+						ent.setY(0);
+						jump = false;
+					}
 				}
 			}	
+
 			for(SimplePlatform plat : em.platforms){
 				plat.update(delta);
 			}
+
+			if(p.getY() < camera.position.y-(camera.viewportHeight/2)){
+				reset();
+				return;
+			}
+
 		}else{
 			batch.begin();
 			batch.draw(pausedScreen, 0, camera.position.y-((camera.viewportHeight/2))-5);
@@ -142,6 +172,50 @@ public class LevelScreen implements Screen {
 
 	private void handlePlayerInput() {
 		p.setDX(Gdx.input.getAccelerometerX()*-80);
+		if(Gdx.input.isTouched()){
+			if(shotDelay == 10){
+				Bullet bul = new Bullet(em, (float) (p.getX()+(p.getWidth()/2)), (float) (p.getY()+p.getHeight()), 4, 10, batch, Gdx.input.getAccelerometerX());
+				fireBullet(bul);
+				shotDelay = 0;
+			}
+			shotDelay++;
+		}
+	}
+
+	private void fireBullet(Bullet bul) {
+		float angle = bul.sprite.getRotation();
+		if(angle>360){
+			angle = angle-360;
+		}
+		if(angle == 90){
+			bul.setDY(0.1F);
+		}else if(angle == 180){
+			angle -= 2;
+			bul.setDX(-0.1F);
+		}else if(angle == 0 || angle == 360){
+			bul.setDX(0.1F);
+		}else if(angle == 270){
+			bul.setDY(-0.1F);
+		}else if(angle < 90 && angle > 0){
+			angle = (angle/1000);
+			bul.setDX((float) (0.1-angle));
+			bul.setDY(angle);
+		}else if(angle > 90 && angle < 180){
+			angle = ((angle - 88)/1000);
+			bul.setDY((float) (0.1-angle));
+			bul.setDX(-1*angle);
+		}else if(angle > 180 && angle < 270){
+			angle = ((angle - 178)/1000);
+			bul.setDX((float) (-1*(0.1-angle)));
+			bul.setDY(-1*angle);
+		}else if(angle > 270 && angle < 360){
+			angle = ((angle - 270)/1000);
+			bul.setDY((float) (-1*(0.1-angle)));
+			bul.setDX(angle);
+		}
+		bul.setDX((float) (bul.getDX()*5));
+		bul.setDY((float) (bul.getDY()*5));
+		bul.setDY(5);
 	}
 
 	private void generateLevel() {
