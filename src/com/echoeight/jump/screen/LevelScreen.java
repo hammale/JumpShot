@@ -94,8 +94,8 @@ public class LevelScreen implements Screen {
 			em.flush();
 
 			handlePlayerInput();
-			jumpPlayer();		
 			gravity(p);
+			jumpPlayer();
 
 			if(p.getY() >= (camera.position.y)-20){
 				camera.translate(0, 5, 0);
@@ -246,6 +246,7 @@ public class LevelScreen implements Screen {
 		batch = new SpriteBatch();
 		jump = false;
 		p = new Player(em, Gdx.graphics.getWidth()/2, 0, 50, 58, batch);
+		p.setDY(0.1F);
 		generateLevel();
 
 	}
