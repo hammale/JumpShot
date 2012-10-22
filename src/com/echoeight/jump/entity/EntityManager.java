@@ -8,7 +8,7 @@ public class EntityManager
 	private HashSet<Integer> ids = new HashSet<Integer>();
 
 	ArrayList<Entity> movingEntities = new ArrayList<Entity>();
-	public ArrayList<SimplePlatform> platforms = new ArrayList<SimplePlatform>();
+	public ArrayList<BasePlatform> platforms = new ArrayList<BasePlatform>();
 	ArrayList<Entity> entitiesrem = new ArrayList<Entity>();
 
 	public EntityManager()
@@ -17,8 +17,8 @@ public class EntityManager
 
 	public int assignId(Entity entity)
 	{
-		if(entity instanceof SimplePlatform){
-			platforms.add((SimplePlatform) entity);
+		if(entity instanceof BasePlatform){
+			platforms.add((BasePlatform) entity);
 		}else if((entity instanceof MoveableEntity)) {
 			movingEntities.add(entity);
 		}

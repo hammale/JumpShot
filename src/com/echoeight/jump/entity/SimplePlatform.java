@@ -5,15 +5,13 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-public class SimplePlatform extends BaseMoveableEntity
+public class SimplePlatform extends BasePlatform
 {
 	int health;
 	Sprite sprite;
 	PlatColor color;
 	SpriteBatch batch;
-	
-	public enum PlatColor { BLUE, GREEN, RED, YELLOW };
-	
+
 	public SimplePlatform(EntityManager em, float x, float y, float width, float height, PlatColor color, SpriteBatch batch)
 	{
 		super(em, x, y, width, height);
